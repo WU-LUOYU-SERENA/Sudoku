@@ -1,6 +1,6 @@
 # CS3243 Introduction to Artificial Intelligence
 # Project 2
-
+import heapq
 import sys
 import copy
 
@@ -39,14 +39,6 @@ class Sudoku(object):
         newLen = len(unassigned)
         assert newLen == length
         return unassignedVars
-
-
-    def isGoal(self):
-        for i in range(9):
-            for j in range(9):
-                if self.ans[i][j] == 0:
-                    return False
-        return True
 
     def allVarsAreAssigned(self, currAns):
         for i in range(9):
@@ -92,18 +84,6 @@ class Sudoku(object):
                 if not len(squareSet) == 9 - totalZeros: # the square contains duplicates
                     return False
         return True
-
-    '''
-    def updateAnsWithInfer(self, currAns, nextUnassignedVars):
-        nextAns = copy.deepcopy(currAns)
-        for (x, y), domain in nextUnassignedVars:
-            assert nextAns[x][y] == 0
-            if len(domain) == 1:
-                nextAns[x][y] = domain[0] # when this is updated, inference i.e unassignedVars needs to be updated too
-                nextUnassignedVars.remove(((x, y), domain))
-        assert self.isConsistent(nextAns)
-        return nextAns
-    '''
 
     def backtrackingWithInfer(self, currAns, currUnassignedVars):
         if self.allVarsAreAssigned(currAns):
@@ -206,6 +186,60 @@ class Sudoku(object):
     # Note that our evaluation scripts only call the solve method.
     # Any other methods that you write should be used within the solve() method.
 
+class PriorityQueue:
+    """
+      Implements a priority queue data structure. Each inserted item
+      has a priority associated with it and the client is usually interested
+      in quick retrieval of the lowest-priority item in the queue. This
+      data structure allows O(1) access to the lowest-priority item.
+    """
+    def  __init__(self):
+        self.heap = []
+        self.count = 0
+
+    def push(self, item, priority):
+        entry = (priority, self.count, item)
+        heapq.heappush(self.heap, entry)
+        self.count += 1
+
+    def pop(self):
+        (_, _, item) = heapq.heappop(self.heap)
+        return item
+
+    def isEmpty(self):
+        return len(self.heap) == 0
+
+    def update(self, item, priority):
+        # If item already in priority queue with higher priority, update its priority and rebuild the heap.
+        # If item already in priority queue with equal or lower priority, do nothing.
+        # If item not in priority queue, do the same thing as self.push.
+        for index, (p, c, i) in enumerate(self.heap):
+            if i == item:
+                if p <= priority:
+                    break
+                del self.heap[index]
+                self.heap.append((priority, c, item))
+                heapq.heapify(self.heap)
+                break
+        else:
+            self.push(item, priority)
+
+class PriorityQueueWithFunction(PriorityQueue):
+    """
+    Implements a priority queue with the same push/pop signature of the
+    Queue and the Stack classes. This is designed for drop-in replacement for
+    those two classes. The caller has to provide a priority function, which
+    extracts each item's priority.
+    """
+    def  __init__(self, priorityFunction):
+        "priorityFunction (item) -> priority"
+        self.priorityFunction = priorityFunction      # store the priority function
+        PriorityQueue.__init__(self)        # super-class initializer
+
+    def push(self, item):
+        "Adds an item to the queue with priority from the priority function"
+        PriorityQueue.push(self, item, self.priorityFunction(item))
+
 class Queue:
     "A container with a first-in-first-out (FIFO) queuing policy."
 
@@ -227,36 +261,6 @@ class Queue:
         "Returns true if the queue is empty"
         return len(self.list) == 0
 
-
-'''
-if __name__ == "__main__":
-    # STRICTLY do NOT modify the code in the main function here
-    f = open('test_output/input_4.txt', 'r')
-
-    puzzle = [[0 for i in range(9)] for j in range(9)]
-    lines = f.readlines()
-
-    i, j = 0, 0
-    for line in lines:
-        for number in line:
-            if '0' <= number <= '9':
-                puzzle[i][j] = int(number)
-                j += 1
-                if j == 9:
-                    i += 1
-                    j = 0
-
-    sudoku = Sudoku(puzzle)
-    ans = sudoku.solve()
-
-    with open('test_output/output_4.txt', 'r+') as f:
-        f.truncate(0)
-        for i in range(9):
-            for j in range(9):
-                f.write(str(ans[i][j]) + " ")
-            f.write("\n")
-
-'''
 if __name__ == "__main__":
     # STRICTLY do NOT modify the code in the main function here
     if len(sys.argv) != 3:
