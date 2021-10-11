@@ -286,7 +286,7 @@ if __name__ == "__main__":
         raise ValueError("Wrong number of arguments!")
     '''
     try:
-        f = open('CS3243_P2_Sudoku_XX/input_3.txt', 'r')
+        f = open('CS3243_P2_Sudoku_XX/input_1.txt', 'r')
     except IOError:
         print ("\nUsage: python CS3243_P2_Sudoku_XX.py input.txt output.txt\n")
         raise IOError("Input file not found!")
@@ -307,7 +307,7 @@ if __name__ == "__main__":
     sudoku = Sudoku(puzzle)
     ans = sudoku.solve()
 
-    with open('CS3243_P2_Sudoku_XX/output_3.txt', 'a') as f:
+    with open('CS3243_P2_Sudoku_XX/output_1.txt', 'a') as f:
         for i in range(9):
             for j in range(9):
                 f.write(str(ans[i][j]) + " ")
